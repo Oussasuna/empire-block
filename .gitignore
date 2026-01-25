@@ -1,0 +1,21 @@
+# Anchor
+.anchor
+target/
+**/*.rs.bk
+node_modules
+test-ledger
+.DS_Store
+
+# IDL
+*.json
+!package.json
+!tsconfig.json
+
+# Keys
+*.pem
+*.key
+id.json
+
+# Local env
+.env
+.env.local
