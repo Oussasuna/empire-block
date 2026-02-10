@@ -1,3 +1,5 @@
+import { Metaplex, bundlrStorage, walletAdapterIdentity } from '@metaplex-foundation/js';
+import { Connection } from '@solana/web3.js';
 /**
  * Image upload utilities for Arweave
  * This will work once 'arweave' package is installed
@@ -12,25 +14,45 @@
  */
 export async function uploadImageToArweave(
     file: File,
-    connection: any,
+    connection: Connection,
     wallet: any
 ): Promise<string> {
-    // This will be implemented once Metaplex SDK is installed
-    // For now, return a placeholder
+    try {
+        // Determine bundlr address based on network
+        const isMainnet = !connection.rpcEndpoint.includes('devnet');
+        const bundlrAddress = isMainnet
+            ? 'https://node1.bundlr.network'
+            : 'https://devnet.bundlr.network';
 
-    // TODO: Implement actual Arweave upload using Metaplex bundlrStorage()
-    /*
-    const metaplex = Metaplex.make(connection)
-        .use(keypairIdentity(wallet))
-        .use(bundlrStorage());
-    
-    const buffer = await file.arrayBuffer();
-    const { uri } = await metaplex.storage().upload(new Uint8Array(buffer));
-    
-    return uri;
-    */
+        const metaplex = Metaplex.make(connection)
+            .use(walletAdapterIdentity(wallet))
+            .use(bundlrStorage({
+                address: bundlrAddress,
+                providerUrl: connection.rpcEndpoint,
+                timeout: 60000,
+            }));
 
-    throw new Error('Arweave upload not yet implemented. Please install dependencies first.');
+        // Convert file to buffer
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Upload to Arweave via Bundlr
+        const uri = await metaplex.storage().upload({
+            buffer,
+            fileName: file.name,
+            displayName: file.name,
+            uniqueName: `territory-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            contentType: file.type,
+            extension: file.name.split('.').pop() || 'png',
+            tags: [{ name: 'Content-Type', value: file.type }],
+        });
+
+        console.log('Image uploaded to Arweave:', uri);
+        return uri;
+    } catch (error: any) {
+        console.error('Arweave upload error:', error);
+        throw new Error(`Failed to upload image to Arweave: ${error.message}`);
+    }
 }
 
 /**

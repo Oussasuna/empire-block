@@ -1,116 +1,104 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-import { generateMetadata, determineBlockType } from './helpers';
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Metaplex, walletAdapterIdentity, bundlrStorage } from '@metaplex-foundation/js';
+import { getNetworkConfig, isMainnet, getExplorerUrl } from '../solana/config';
+import { withRetry } from '../solana/rpcHelpers';
+import { uploadImageToArweave } from './uploadImage';
 
-/**
- * Mint a territory NFT using Metaplex
- * This will work once @metaplex-foundation/js is installed
- * 
- * @param connection - Solana connection
- * @param wallet - Wallet adapter
- * @param x - X coordinate
- * @param y - Y coordinate
- * @param customImage - Optional custom image URI
- * @returns NFT mint address
- */
-export async function mintTerritoryNFT(
-    connection: Connection,
-    wallet: any,
-    x: number,
-    y: number,
-    customImage?: string
-): Promise<string> {
-    if (!wallet.publicKey) {
-        throw new Error('Wallet not connected');
+interface MintTerritoryParams {
+    connection: Connection;
+    wallet: any;
+    coordinates: { x: number; y: number };
+    name: string;
+    imageFile?: File;
+    imageUri?: string;
+}
+
+export async function mintTerritory({
+    connection,
+    wallet,
+    coordinates,
+    name,
+    imageFile,
+    imageUri,
+}: MintTerritoryParams): Promise<{ signature: string; mintAddress: string }> {
+    try {
+        if (!wallet.publicKey) {
+            throw new Error('Wallet not connected');
+        }
+
+        const config = getNetworkConfig();
+        console.log(`Minting on ${config.name}...`);
+
+        // Setup Metaplex
+        const metaplex = Metaplex.make(connection)
+            .use(walletAdapterIdentity(wallet))
+            .use(bundlrStorage({
+                address: config.bundlrAddress,
+                providerUrl: config.rpcUrl,
+                timeout: 60000,
+            }));
+
+        // Upload image if provided
+        let finalImageUri = imageUri || '';
+        if (imageFile && !imageUri) {
+            console.log('Uploading territory image...');
+            finalImageUri = await uploadImageToArweave(imageFile, connection, wallet);
+        }
+
+        // If no image, use a default placeholder
+        if (!finalImageUri) {
+            finalImageUri = 'https://arweave.net/placeholder-territory-image';
+        }
+
+        // Create NFT metadata
+        const metadata = {
+            name: name || `Territory (${coordinates.x}, ${coordinates.y})`,
+            symbol: 'EMPIRE',
+            description: `Empire Blocks Territory at coordinates (${coordinates.x}, ${coordinates.y})`,
+            image: finalImageUri,
+            attributes: [
+                { trait_type: 'X Coordinate', value: coordinates.x.toString() },
+                { trait_type: 'Y Coordinate', value: coordinates.y.toString() },
+                { trait_type: 'Rarity', value: 'Standard' },
+                { trait_type: 'Network', value: isMainnet() ? 'Mainnet' : 'Devnet' },
+            ],
+            properties: {
+                files: [{ uri: finalImageUri, type: 'image/png' }],
+                category: 'image',
+            },
+        };
+
+        console.log('Creating NFT with metadata:', metadata);
+
+        // Upload metadata to Arweave first
+        const { uri: metadataUri } = await withRetry(async () => {
+            return metaplex.nfts().uploadMetadata(metadata);
+        });
+
+        console.log('Metadata uploaded:', metadataUri);
+
+        // Mint NFT with retry
+        const { nft, response } = await withRetry(async () => {
+            return metaplex.nfts().create({
+                uri: metadataUri,
+                name: metadata.name,
+                symbol: metadata.symbol,
+                sellerFeeBasisPoints: 500, // 5% royalty
+                creators: [{ address: wallet.publicKey, share: 100 }],
+            });
+        });
+
+        const signature = response.signature;
+        const mintAddress = nft.address.toBase58();
+
+        console.log('Territory minted successfully!');
+        console.log('Signature:', signature);
+        console.log('Mint Address:', mintAddress);
+        console.log('Explorer:', getExplorerUrl(signature));
+
+        return { signature, mintAddress };
+    } catch (error: any) {
+        console.error('Minting failed:', error);
+        throw new Error(`Failed to mint territory: ${error.message}`);
     }
-
-    // Determine block type
-    const blockType = determineBlockType(x, y);
-
-    // Generate metadata
-    const metadata = generateMetadata(
-        x,
-        y,
-        blockType,
-        customImage,
-        wallet.publicKey.toString()
-    );
-
-    // TODO: Implement actual Metaplex minting once SDK is installed
-    /*
-    const metaplex = Metaplex.make(connection)
-        .use(keypairIdentity(wallet))
-        .use(bundlrStorage());
-    
-    // Upload metadata to Arweave
-    const { uri } = await metaplex.nfts().uploadMetadata(metadata);
-    
-    // Mint NFT
-    const { nft } = await metaplex.nfts().create({
-        uri: uri,
-        name: metadata.name,
-        symbol: metadata.symbol,
-        sellerFeeBasisPoints: 500, // 5% royalty
-        creators: [
-            {
-                address: wallet.publicKey,
-                share: 100,
-            }
-        ],
-    });
-    
-    console.log('NFT Minted:', nft.address.toString());
-    return nft.address.toString();
-    */
-
-    // For now, throw error until dependencies are installed
-    throw new Error(
-        'Metaplex SDK not installed. Please install dependencies:\n' +
-        'npm install @metaplex-foundation/js@0.19.4 @metaplex-foundation/mpl-token-metadata arweave'
-    );
-}
-
-/**
- * Transfer territory NFT to new owner
- */
-export async function transferTerritoryNFT(
-    connection: Connection,
-    wallet: any,
-    mintAddress: string,
-    newOwner: string
-): Promise<string> {
-    // TODO: Implement Metaplex transfer
-    /*
-    const metaplex = Metaplex.make(connection).use(keypairIdentity(wallet));
-    
-    const nft = await metaplex.nfts().findByMint({ mintAddress: new PublicKey(mintAddress) });
-    
-    const { response } = await metaplex.nfts().transfer({
-        nftOrSft: nft,
-        toOwner: new PublicKey(newOwner),
-    });
-    
-    return response.signature;
-    */
-
-    throw new Error('Metaplex SDK not installed');
-}
-
-/**
- * Get NFT metadata from mint address
- */
-export async function getNFTMetadata(
-    connection: Connection,
-    mintAddress: string
-): Promise<any> {
-    // TODO: Implement metadata fetching
-    /*
-    const metaplex = Metaplex.make(connection);
-    const nft = await metaplex.nfts().findByMint({ 
-        mintAddress: new PublicKey(mintAddress) 
-    });
-    
-    return nft.json;
-    */
-
-    throw new Error('Metaplex SDK not installed');
 }

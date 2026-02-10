@@ -10,7 +10,7 @@
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.29.0",
-        "@metaplex-foundation/js": "^0.19.4",
+        "@metaplex-foundation/js": "^0.19.5",
         "@metaplex-foundation/mpl-token-metadata": "^2.13.0",
         "@radix-ui/react-dialog": "^1.0.5",
         "@react-three/drei": "^9.96.1",

@@ -3,6 +3,13 @@ import { apiClient } from '@/api/client';
 import { toast } from 'react-hot-toast';
 import { isBetaMode, getExplorerUrl } from '@/utils/beta';
 import { trackBetaEvent } from '@/utils/analytics';
+import {
+    Army,
+    Territory,
+    predictBattleOutcome,
+    createEmptyArmy,
+    createTerritory
+} from '@/lib/battle/BattleSystem';
 
 const RATE_LIMIT_MS = 5000; // 5 seconds between battles
 
@@ -52,7 +59,7 @@ export const useBattle = () => {
         }
     }, []);
 
-    const initiateBattle = async (x: number, y: number) => {
+    const initiateBattle = async (x: number, y: number, army?: Army) => {
         // Rate limiting check
         const now = Date.now();
         const timeSinceLastBattle = now - lastBattleTime.current;
@@ -75,7 +82,7 @@ export const useBattle = () => {
 
         try {
             // In a real scenario, this involves signing a transaction to stake tokens
-            await apiClient.post(`/battles/initiate`, { x, y });
+            await apiClient.post(`/battles/initiate`, { x, y, army });
 
             lastBattleTime.current = Date.now();
 
@@ -105,12 +112,17 @@ export const useBattle = () => {
         }
     };
 
+    const predictOutcome = useCallback((attackerArmy: Army, defenderTerritory: Territory) => {
+        return predictBattleOutcome(attackerArmy, defenderTerritory);
+    }, []);
+
     return {
         activeBattles,
         history,
         isLoading,
         fetchActiveBattles,
         fetchHistory,
-        initiateBattle
+        initiateBattle,
+        predictOutcome
     };
 };

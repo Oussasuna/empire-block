@@ -3,6 +3,7 @@
 import { Inter, Montserrat, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { WalletContextProvider } from '@/lib/solana/wallet';
+import { NetworkBanner } from '@/components/UI/NetworkBanner';
 import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
@@ -26,6 +27,7 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${inter.variable} ${montserrat.variable} ${jetbrainsMono.variable} font-sans bg-background text-white`}>
                 <WalletContextProvider>
+                    <NetworkBanner />
                     <div className="relative min-h-screen w-full flex flex-col">
                         {/* Ambient Background Effects */}
                         <div className="fixed inset-0 pointer-events-none z-0">

@@ -6,25 +6,21 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { clusterApiUrl } from '@solana/web3.js';
+import { getNetworkConfig, isMainnet } from './config';
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 export const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    // Determine network from environment variable
-    const networkEnv = process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet';
-    const network = networkEnv === 'mainnet'
-        ? WalletAdapterNetwork.Mainnet
-        : WalletAdapterNetwork.Devnet;
+    const config = getNetworkConfig();
 
-    // Use custom RPC URL if provided, otherwise use default cluster URL
+    const network = isMainnet()
+        ? WalletAdapterNetwork.Mainnet
+        : WalletAdapterNetwork.Mainnet;
+
     const endpoint = useMemo(() => {
-        const customRpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
-        if (customRpcUrl) {
-            return customRpcUrl;
-        }
-        return clusterApiUrl(network);
-    }, [network]);
+        console.log(`Using Solana ${config.name} RPC:`, config.rpcUrl);
+        return config.rpcUrl;
+    }, [config]);
 
     const wallets = useMemo(
         () => [
@@ -35,7 +31,13 @@ export const WalletContextProvider: FC<{ children: ReactNode }> = ({ children })
     );
 
     return (
-        <ConnectionProvider endpoint={endpoint}>
+        <ConnectionProvider
+            endpoint={endpoint}
+            config={{
+                commitment: 'confirmed',
+                confirmTransactionInitialTimeout: 60000,
+            }}
+        >
             <WalletProvider wallets={wallets} autoConnect>
                 <WalletModalProvider>{children}</WalletModalProvider>
             </WalletProvider>

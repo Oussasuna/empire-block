@@ -8,24 +8,7 @@ const config: Config = {
     ],
     theme: {
         extend: {
-            colors: {
-                background: "#0A0E27", // Deep Dark Blue
-                primary: {
-                    DEFAULT: "#8B5CF6", // Purple
-                    hover: "#7C3AED",
-                },
-                secondary: {
-                    DEFAULT: "#3B82F6", // Blue
-                    hover: "#2563EB",
-                },
-                accent: {
-                    DEFAULT: "#10B981", // Green
-                    hover: "#059669",
-                },
-                warning: "#F59E0B", // Orange
-                danger: "#EF4444", // Red
-                card: "rgba(255, 255, 255, 0.05)",
-            },
+
             backgroundImage: {
                 "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
                 "gradient-conic":
@@ -73,6 +56,7 @@ const config: Config = {
                 },
                 warning: "#F59E0B",
                 danger: "#EF4444",
+                card: "rgba(255, 255, 255, 0.05)",
                 'empire': {
                     50: '#f5f3ff',
                     100: '#ede9fe',
