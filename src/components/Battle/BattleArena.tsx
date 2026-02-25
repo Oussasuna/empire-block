@@ -21,15 +21,25 @@ export default function BattleArena() {
     }, [fetchActiveBattles, fetchHistory]);
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-            <div className="flex items-center gap-4 mb-8">
-                <div className="bg-danger/20 p-3 rounded-xl border border-danger/20 shadow-lg shadow-danger/10">
-                    <Swords className="text-danger" size={32} />
-                </div>
-                <div>
-                    <h1 className="text-3xl font-bold text-white font-heading">Battle Arena</h1>
-                    <p className="text-gray-400">View active conflicts and war history across the empire.</p>
-                </div>
+        <div className="container mx-auto px-4 py-8 max-w-6xl relative">
+            {/* Background Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-red-600/10 via-transparent to-transparent blur-[120px] pointer-events-none" />
+
+            {/* Header */}
+            <div className="relative z-10 flex flex-col items-center mb-16 text-center">
+                <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="w-16 h-16 bg-danger/10 rounded-2xl flex items-center justify-center mb-6 border border-danger/20 shadow-[0_0_50px_rgba(239,68,68,0.15)] group hover:scale-110 transition-transform duration-300"
+                >
+                    <Swords className="text-danger group-hover:rotate-12 transition-transform" size={32} />
+                </motion.div>
+                <h1 className="text-6xl md:text-7xl font-black tracking-tighter mb-4 uppercase italic">
+                    Battle<span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Arena</span>
+                </h1>
+                <p className="text-gray-400 font-bold uppercase tracking-[0.4em] text-[10px] md:text-xs">
+                    Conquer Territories <span className="text-gray-600 mx-2">•</span> Dominate the Grid
+                </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -8,6 +8,8 @@ import ListingCard from '@/components/Marketplace/ListingCard';
 import BuyModal from '@/components/Marketplace/BuyModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Store, Ghost } from 'lucide-react';
+import { LandingNavbar } from '@/components/Landing/Navbar';
+import { LandingFooter } from '@/components/Landing/CTABanner';
 
 export default function MarketplacePage() {
     const {
@@ -43,19 +45,28 @@ export default function MarketplacePage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#0A0E27] text-white py-12 px-4 md:px-8">
-            <div className="max-w-7xl mx-auto">
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-                    <div className="flex items-center gap-5">
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/20 border border-purple-400/30">
-                            <Store size={32} />
-                        </div>
-                        <div>
-                            <h1 className="text-4xl font-black tracking-tight mb-1">Marketplace</h1>
-                            <p className="text-gray-400 text-sm font-semibold uppercase tracking-widest">Trade territories and expand your influence</p>
-                        </div>
-                    </div>
+        <div className="min-h-screen bg-[#050510] text-white selection:bg-purple-500/30">
+            <LandingNavbar />
+
+            <div className="py-12 px-4 md:px-8 max-w-7xl mx-auto relative">
+                {/* Background Glow */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-purple-600/10 via-transparent to-transparent blur-[120px] pointer-events-none" />
+
+                {/* Header */}
+                <div className="relative z-10 flex flex-col items-center mb-16 text-center">
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6 border border-purple-500/20 shadow-[0_0_50px_rgba(168,85,247,0.15)] group hover:scale-110 transition-transform duration-300"
+                    >
+                        <Store className="text-purple-400 group-hover:rotate-12 transition-transform" size={32} />
+                    </motion.div>
+                    <h1 className="text-6xl md:text-7xl font-black tracking-tighter mb-4 uppercase italic">
+                        Market<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#8B5CF6]">place</span>
+                    </h1>
+                    <p className="text-gray-400 font-bold uppercase tracking-[0.4em] text-[10px] md:text-xs">
+                        Trade Territories <span className="text-gray-600 mx-2">•</span> Expand Your Empire
+                    </p>
                 </div>
 
                 {/* Market Statistics */}
@@ -121,6 +132,7 @@ export default function MarketplacePage() {
                 onConfirm={handleConfirmPurchase}
                 isBuying={isBuying}
             />
+            <LandingFooter />
         </div>
     );
 }

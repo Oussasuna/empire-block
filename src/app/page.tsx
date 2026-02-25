@@ -2,94 +2,101 @@
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import dynamic from 'next/dynamic';
-import PlayerDashboard from '@/components/Dashboard/PlayerDashboard';
-import LandingPage from '@/components/Landing/LandingPage';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { LayoutGrid, User } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-import TerritoryModal from '@/components/Territory/TerritoryModal';
 
+// Landing Components (Stylish AAA version)
+import { LandingNavbar } from '@/components/Landing/Navbar';
+import { Hero } from '@/components/Landing/Hero';
+import { LeaderboardPreview } from '@/components/Landing/LeaderboardPreview';
+import { Features } from '@/components/Landing/Features';
+import { HowItWorks } from '@/components/Landing/HowItWorks';
+
+import { CTABanner, LandingFooter } from '@/components/Landing/CTABanner';
+
+// Game Components
+import PlayerDashboard from '@/components/Dashboard/PlayerDashboard';
 const GridCanvas = dynamic(() => import('@/components/Grid/GridCanvas'), {
     ssr: false,
-    loading: () => <div className="w-full h-full bg-[#0A0E27] flex items-center justify-center text-white">Loading Grid...</div>
+    loading: () => <div className="w-full h-full bg-[#0A0E27] flex items-center justify-center text-white font-bold uppercase tracking-widest animate-pulse">Initializing Neural Grid...</div>
 });
+import TerritoryModal from '@/components/Territory/TerritoryModal';
 
 export default function Home() {
     const { connected } = useWallet();
     const [activeTab, setActiveTab] = useState<'grid' | 'dashboard'>('grid');
     const [selectedCell, setSelectedCell] = useState<{ x: number, y: number } | null>(null);
 
-    // Show Landing Page if not connected
+    // If NOT connected, show the stylish AAA landing page
     if (!connected) {
-        return <LandingPage />;
+        return (
+            <div className="flex flex-col w-full overflow-x-hidden">
+                <LandingNavbar />
+                <Hero />
+                <LeaderboardPreview />
+                <HowItWorks />
+                <Features />
+                <CTABanner />
+                <LandingFooter />
+            </div>
+        );
     }
 
+    // If connected, show the interactive Game UI
     const handleCellClick = (x: number, y: number) => {
-        console.log('GamePage: Cell clicked', x, y);
         setSelectedCell({ x, y });
     };
 
     const handleCloseModal = () => {
-        console.log('GamePage: Closing modal');
         setSelectedCell(null);
     };
 
     return (
-        <div className="relative h-[calc(100vh-64px)] overflow-hidden bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-            {/* Tab Switcher (Mobile) */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0A0E27] border-t border-white/10 z-30 flex pb-safe">
-                <button
-                    onClick={() => setActiveTab('grid')}
-                    className={`flex-1 py-4 flex flex-col items-center justify-center gap-1 transition-colors ${activeTab === 'grid'
-                        ? 'text-primary'
-                        : 'text-gray-400 hover:text-white'
-                        }`}
-                >
-                    <LayoutGrid size={20} />
-                    <span className="text-xs font-medium">Grid</span>
-                </button>
-                <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className={`flex-1 py-4 flex flex-col items-center justify-center gap-1 transition-colors ${activeTab === 'dashboard'
-                        ? 'text-primary'
-                        : 'text-gray-400 hover:text-white'
-                        }`}
-                >
-                    <User size={20} />
-                    <span className="text-xs font-medium">Dashboard</span>
-                </button>
-            </div>
+        <div className="relative flex flex-col h-screen overflow-hidden">
+            {/* Game Navbar / Header */}
+            <LandingNavbar />
 
-            {/* Desktop Layout */}
-            <div className="hidden md:grid md:grid-cols-[1fr,400px] h-full">
-                <div className="relative w-full h-full bg-black/40 z-10">
+            <div className="relative flex-1 flex flex-col md:flex-row overflow-hidden">
+                {/* Tab Switcher (Mobile) */}
+                <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-xl border border-white/10 z-40 flex rounded-2xl p-1.5 shadow-2xl">
+                    <button
+                        onClick={() => setActiveTab('grid')}
+                        className={`px-6 py-2 rounded-xl flex items-center gap-2 transition-all ${activeTab === 'grid'
+                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                            : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        <LayoutGrid size={18} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Grid</span>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('dashboard')}
+                        className={`px-6 py-2 rounded-xl flex items-center gap-2 transition-all ${activeTab === 'dashboard'
+                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                            : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        <User size={18} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Base</span>
+                    </button>
+                </div>
+
+                {/* Desktop/Mobile Shared Canvas */}
+                <div className={`flex-1 relative z-10 bg-black/40 ${activeTab === 'grid' ? 'flex' : 'hidden md:flex'}`}>
                     <GridCanvas
                         selectedCell={selectedCell}
                         onCellClick={handleCellClick}
                     />
                 </div>
-                <div className="bg-[#0A0E27] border-l border-white/10 overflow-y-auto p-6 scrollbar-thin">
+
+                {/* Player Dashboard Column */}
+                <div className={`md:w-[400px] bg-[#050510] border-l border-white/5 relative z-20 overflow-y-auto ${activeTab === 'dashboard' ? 'flex flex-col flex-1' : 'hidden md:flex flex-col'}`}>
                     <PlayerDashboard />
                 </div>
             </div>
 
-            {/* Mobile Layout */}
-            <div className="md:hidden h-[calc(100%-64px)]">
-                {activeTab === 'grid' ? (
-                    <div className="w-full h-full">
-                        <GridCanvas
-                            selectedCell={selectedCell}
-                            onCellClick={handleCellClick}
-                        />
-                    </div>
-                ) : (
-                    <div className="h-full overflow-y-auto p-4 pb-20">
-                        <PlayerDashboard />
-                    </div>
-                )}
-            </div>
-
-            {/* Territory Modal - Shared for both layouts */}
+            {/* Territory Modal */}
             <AnimatePresence>
                 {selectedCell && (
                     <TerritoryModal
@@ -101,15 +108,14 @@ export default function Home() {
                 )}
             </AnimatePresence>
 
-            {/* Debug Info (Development Only) */}
+            {/* Debug State */}
             {process.env.NODE_ENV === 'development' && (
-                <div className="fixed bottom-20 left-4 bg-black/80 text-white p-3 rounded-lg text-xs font-mono z-[100] border border-white/10">
-                    <div className="text-primary font-bold mb-1 uppercase tracking-wider">Debug State</div>
-                    <div>Selected: {selectedCell ? `(${selectedCell.x}, ${selectedCell.y})` : 'None'}</div>
+                <div className="fixed bottom-24 left-6 z-50 pointer-events-none opacity-50">
+                    <div className="text-[10px] font-mono text-primary font-bold bg-black/50 px-2 py-1 rounded">
+                        Neural State: {connected ? 'Connected' : 'External'} | {activeTab.toUpperCase()}
+                    </div>
                 </div>
             )}
         </div>
     );
 }
-
-

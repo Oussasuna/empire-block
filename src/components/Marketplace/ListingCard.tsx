@@ -23,11 +23,11 @@ export default function ListingCard({ listing, onBuy }: ListingCardProps) {
 
     return (
         <motion.div
-            whileHover={{ y: -8 }}
-            className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl border border-white/10 overflow-hidden group transition-all duration-300 hover:border-purple-500/40 hover:shadow-2xl hover:shadow-purple-500/10"
+            whileHover={{ y: -8, scale: 1.02 }}
+            className="bg-[#0A0A0F] rounded-3xl border border-white/5 overflow-hidden group transition-all duration-500 hover:border-purple-500/50 hover:shadow-[0_0_50px_rgba(124,58,237,0.15)]"
         >
             {/* Map Preview Placeholder */}
-            <div className="h-44 bg-[#0a0e27] relative overflow-hidden flex items-center justify-center">
+            <div className="h-44 bg-[#050508] relative overflow-hidden flex items-center justify-center border-b border-white/5">
                 <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-500 via-transparent to-transparent" />
                 <div className="w-full h-full border-b border-white/5 opacity-10 grid grid-cols-8 grid-rows-6">
                     {Array.from({ length: 48 }).map((_, i) => (
@@ -62,10 +62,10 @@ export default function ListingCard({ listing, onBuy }: ListingCardProps) {
                     </div>
                 </div>
 
-                <div className="bg-white/5 rounded-2xl p-4 mb-6 border border-white/5">
+                <div className="bg-white/[0.03] rounded-2xl p-4 mb-6 border border-white/5 group-hover:bg-white/[0.05] transition-colors duration-500">
                     <div className="flex justify-between items-baseline mb-1">
                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Price</p>
-                        <p className="text-[10px] text-gray-400 font-mono">{listing.seller_wallet}</p>
+                        <p className="text-[10px] text-gray-400 font-mono opacity-50">{listing.seller_wallet}</p>
                     </div>
                     <p className="text-2xl font-black text-white">{listing.price} <span className="text-purple-400 text-sm">SOL</span></p>
                 </div>

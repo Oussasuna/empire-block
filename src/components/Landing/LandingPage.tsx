@@ -162,85 +162,24 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* How It Works Section */}
-            <section className="container mx-auto px-4 py-20 border-t border-white/5">
+            {/* Docs Section Placeholder */}
+            <section id="docs" className="container mx-auto px-4 py-20 border-t border-white/5">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl font-black text-gradient-primary mb-4">How Empire Blocks Works</h2>
-                    <p className="text-gray-400 text-lg">Three simple steps to start your empire</p>
+                    <h2 className="text-4xl font-black text-gradient-primary mb-4 uppercase italic">Documentation</h2>
+                    <p className="text-gray-400 text-lg font-bold uppercase tracking-widest">Everything you need to know about Empire Blocks</p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8">
-                    {/* Step 1 */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.1 }}
-                        className="relative"
-                    >
-                        <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl p-8 border neon-border-primary hover:scale-105 transition-all duration-300 group h-full">
-                            <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <span className="text-3xl">🏰</span>
-                            </div>
-                            <h3 className="text-2xl font-black text-white mb-4">1. Claim Territory</h3>
-                            <p className="text-gray-300 leading-relaxed">
-                                Buy land on the 50×50 grid. Each square is an NFT you truly own.
-                                Strategic positions offer better revenue multipliers.
-                            </p>
-                            <div className="mt-6 flex items-center gap-2 text-purple-400 text-sm font-semibold">
-                                <span>Starting at 0.1 SOL</span>
-                                <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Step 2 */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.2 }}
-                        className="relative"
-                    >
-                        <div className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 rounded-2xl p-8 border neon-border-secondary hover:scale-105 transition-all duration-300 group h-full">
-                            <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <span className="text-3xl">👑</span>
-                            </div>
-                            <h3 className="text-2xl font-black text-white mb-4">2. Build Empires</h3>
-                            <p className="text-gray-300 leading-relaxed">
-                                Connect adjacent territories to form empires. Bigger empires earn
-                                up to +50% bonus revenue from all game activity.
-                            </p>
-                            <div className="mt-6 flex items-center gap-2 text-blue-400 text-sm font-semibold">
-                                <span>Up to 50% bonus</span>
-                                <TrendingUp size={16} className="group-hover:translate-y-[-4px] transition-transform" />
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Step 3 */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.3 }}
-                        className="relative"
-                    >
-                        <div className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 rounded-2xl p-8 border neon-border-accent hover:scale-105 transition-all duration-300 group h-full">
-                            <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <span className="text-3xl">💰</span>
-                            </div>
-                            <h3 className="text-2xl font-black text-white mb-4">3. Earn Revenue</h3>
-                            <p className="text-gray-300 leading-relaxed">
-                                Receive passive SOL from every territory sale in the game.
-                                Battle neighbors to expand your empire and increase earnings.
-                            </p>
-                            <div className="mt-6 flex items-center gap-2 text-green-400 text-sm font-semibold">
-                                <span>Passive income daily</span>
-                                <Coins size={16} className="group-hover:rotate-12 transition-transform" />
-                            </div>
-                        </div>
-                    </motion.div>
+                <div className="max-w-4xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-12 text-center shadow-2xl">
+                    <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-primary/20">
+                        <Sparkles className="text-primary" size={40} />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mb-4">Coming Soon</h3>
+                    <p className="text-gray-400 leading-relaxed mb-8">
+                        Our comprehensive documentation is currently being finalized. Check back soon for detailed guides on gameplay, territory economics, and battle strategies.
+                    </p>
+                    <div className="inline-flex items-center gap-2 px-6 py-2 bg-primary/20 border border-primary/30 rounded-xl text-primary text-xs font-black uppercase tracking-widest animate-pulse">
+                        Updating Systems...
+                    </div>
                 </div>
             </section>
 
