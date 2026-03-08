@@ -16,17 +16,16 @@ import { HowItWorks } from '@/components/Landing/HowItWorks';
 import { CTABanner, LandingFooter } from '@/components/Landing/CTABanner';
 
 // Game Components
+import { useGrid } from '@/hooks/useGrid';
+import Grid2D from '@/components/Grid/Grid2D';
 import PlayerDashboard from '@/components/Dashboard/PlayerDashboard';
-const GridCanvas = dynamic(() => import('@/components/Grid/GridCanvas'), {
-    ssr: false,
-    loading: () => <div className="w-full h-full bg-[#0A0E27] flex items-center justify-center text-white font-bold uppercase tracking-widest animate-pulse">Initializing Neural Grid...</div>
-});
 import TerritoryModal from '@/components/Territory/TerritoryModal';
 
 export default function Home() {
-    const { connected } = useWallet();
+    const { connected, publicKey } = useWallet();
     const [activeTab, setActiveTab] = useState<'grid' | 'dashboard'>('grid');
     const [selectedCell, setSelectedCell] = useState<{ x: number, y: number } | null>(null);
+    const { territories, isLoading } = useGrid();
 
     // If NOT connected, show the stylish AAA landing page
     if (!connected) {
@@ -84,10 +83,18 @@ export default function Home() {
 
                 {/* Desktop/Mobile Shared Canvas */}
                 <div className={`flex-1 relative z-10 bg-black/40 ${activeTab === 'grid' ? 'flex' : 'hidden md:flex'}`}>
-                    <GridCanvas
-                        selectedCell={selectedCell}
-                        onCellClick={handleCellClick}
-                    />
+                    {isLoading ? (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                        </div>
+                    ) : (
+                        <Grid2D
+                            territories={territories}
+                            selectedCell={selectedCell}
+                            onCellClick={handleCellClick}
+                            userWallet={publicKey?.toString() || null}
+                        />
+                    )}
                 </div>
 
                 {/* Player Dashboard Column */}

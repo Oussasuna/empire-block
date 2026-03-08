@@ -37,7 +37,7 @@ export default function MarketStats({ stats }: MarketStatsProps) {
     ];
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
             {statItems.map((item, idx) => (
                 <motion.div
                     key={idx}
@@ -45,18 +45,20 @@ export default function MarketStats({ stats }: MarketStatsProps) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
                     whileHover={{ scale: 1.02 }}
-                    className="relative group bg-white/5 border border-white/10 rounded-2xl p-6 overflow-hidden transition-all duration-300 hover:border-white/20"
+                    className="relative group bg-white/5 border border-white/10 rounded-2xl p-4 md:p-6 overflow-hidden transition-all duration-300 hover:border-white/20"
                 >
                     {/* Background Gradient */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
 
-                    <div className="relative flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-white/10 transition-colors">
-                            {item.icon}
+                    <div className="relative flex items-center gap-3 md:gap-4">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-white/10 transition-colors shrink-0">
+                            <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
+                                {item.icon}
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">{item.label}</p>
-                            <p className="text-xl font-black text-white tracking-tight">{item.value}</p>
+                        <div className="min-w-0">
+                            <p className="text-[9px] md:text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 truncate">{item.label}</p>
+                            <p className="text-base md:text-xl font-black text-white tracking-tight truncate">{item.value}</p>
                         </div>
                     </div>
                 </motion.div>

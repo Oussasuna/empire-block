@@ -5,7 +5,10 @@ export interface Territory {
     x_coordinate: number;
     y_coordinate: number;
     owner_wallet: string | null;
+    owner_image?: string | null;
     block_type: 'standard' | 'capital' | 'corner' | 'border';
+    level?: number;
+    is_frozen?: boolean;
     visual_config: {
         color_r: number;
         color_g: number;

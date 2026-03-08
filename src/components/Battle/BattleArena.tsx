@@ -64,38 +64,40 @@ export default function BattleArena() {
                                         <Swords size={100} />
                                     </div>
 
-                                    <div className="flex justify-between items-center relative z-10">
+                                    <div className="flex flex-col sm:flex-row justify-between items-center gap-6 relative z-10">
                                         {/* Attacker */}
-                                        <div className="text-center">
-                                            <div className="w-12 h-12 rounded-full bg-danger/20 flex items-center justify-center mx-auto mb-2 border border-danger/50">
+                                        <div className="text-center w-full sm:w-auto">
+                                            <div className="w-12 h-12 rounded-full bg-danger/20 flex items-center justify-center mx-auto mb-2 border border-danger/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                                                 <Swords className="text-danger" size={20} />
                                             </div>
-                                            <p className="text-sm font-bold text-white font-mono">
+                                            <p className="text-sm font-bold text-white font-mono tracking-wider">
                                                 {battle.attacker_wallet.slice(0, 4)}...{battle.attacker_wallet.slice(-4)}
                                             </p>
-                                            <p className="text-[10px] text-danger uppercase tracking-wider">Attacker</p>
+                                            <p className="text-[10px] text-danger uppercase font-black tracking-widest mt-1">Attacker</p>
                                         </div>
 
                                         {/* VS */}
-                                        <div className="flex flex-col items-center px-4">
-                                            <span className="text-2xl font-black text-white/20 italic">VS</span>
-                                            <div className="mt-2 bg-white/5 px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
-                                                <MapPin size={12} className="text-gray-400" />
-                                                <span className="text-xs font-mono text-gray-300">
-                                                    Territory ({battle.territory?.x_coordinate}, {battle.territory?.y_coordinate})
+                                        <div className="flex flex-row sm:flex-col items-center gap-4 sm:gap-2 px-4 w-full sm:w-auto justify-center">
+                                            <div className="h-px w-8 sm:w-px sm:h-4 bg-white/10 hidden sm:block" />
+                                            <span className="text-2xl md:text-3xl font-black text-white/20 italic">VS</span>
+                                            <div className="mt-2 bg-white/5 px-4 py-2 rounded-xl border border-white/10 flex items-center gap-2 shadow-inner">
+                                                <MapPin size={12} className="text-primary" />
+                                                <span className="text-[10px] md:text-xs font-mono text-gray-300 font-bold whitespace-nowrap">
+                                                    ({battle.territory?.x_coordinate}, {battle.territory?.y_coordinate})
                                                 </span>
                                             </div>
+                                            <div className="h-px w-8 sm:w-px sm:h-4 bg-white/10 hidden sm:block" />
                                         </div>
 
                                         {/* Defender */}
-                                        <div className="text-center">
-                                            <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-2 border border-blue-500/50">
+                                        <div className="text-center w-full sm:w-auto">
+                                            <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-2 border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                                                 <Shield className="text-blue-400" size={20} />
                                             </div>
-                                            <p className="text-sm font-bold text-white font-mono">
+                                            <p className="text-sm font-bold text-white font-mono tracking-wider">
                                                 {battle.defender_wallet.slice(0, 4)}...{battle.defender_wallet.slice(-4)}
                                             </p>
-                                            <p className="text-[10px] text-blue-400 uppercase tracking-wider">Defender</p>
+                                            <p className="text-[10px] text-blue-400 uppercase font-black tracking-widest mt-1">Defender</p>
                                         </div>
                                     </div>
 
