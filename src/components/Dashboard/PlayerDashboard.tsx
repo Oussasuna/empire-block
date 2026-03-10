@@ -2,10 +2,16 @@
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import { usePlayerStore } from '@/store/playerStore';
-import { usePlayerTerritories } from '@/hooks/usePlayerTerritories';
+import { useMintTerritory } from '@/hooks/useMintTerritory';
 import { motion } from 'framer-motion';
-import { Crown, MapPin, Coins, TrendingUp, Swords, Wallet, Zap } from 'lucide-react';
+import { Crown, MapPin, Coins, TrendingUp, Swords, Wallet, Zap, Sparkles, Tag } from 'lucide-react';
 import EmpireMap from './EmpireMap';
+import { usePlayerTerritories } from '@/hooks/usePlayerTerritories';
+import { useGameProgram } from '../program/game';
+import { useMarketplace } from '@/hooks/useMarketplace';
+import ListLandModal from '../Marketplace/ListLandModal';
+import { PublicKey } from '@solana/web3.js';
+import { useState } from 'react';
 
 
 function StatCard({ icon, label, value, colorClass, accentClass }: any) {
@@ -34,67 +40,118 @@ function StatCard({ icon, label, value, colorClass, accentClass }: any) {
     );
 }
 
-function TerritoryCard({ territory }: any) {
+function TerritoryCard({ territory, onList, onCancel }: any) {
     const getTypeStyles = (type: string) => {
         switch (type) {
             case 'corner':
                 return {
-                    color: 'text-yellow-400',
-                    border: 'neon-border-accent',
-                    glow: 'shadow-[0_0_10px_rgba(251,191,36,0.3)]',
-                    dot: 'bg-yellow-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]'
+                    text: 'text-amber-400',
+                    bg: 'bg-amber-400/10',
+                    border: 'border-amber-400/20',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(251,191,36,0.15)]',
+                    dot: 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]',
+                    gradient: 'from-amber-500/5 to-transparent'
                 };
             case 'capital':
                 return {
-                    color: 'text-red-400',
-                    border: 'neon-border-primary',
-                    glow: 'shadow-[0_0_10px_rgba(239,68,68,0.3)]',
-                    dot: 'bg-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]'
+                    text: 'text-rose-400',
+                    bg: 'bg-rose-400/10',
+                    border: 'border-rose-400/20',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(244,63,94,0.15)]',
+                    dot: 'bg-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.5)]',
+                    gradient: 'from-rose-500/5 to-transparent'
                 };
             case 'border':
                 return {
-                    color: 'text-cyan-400',
-                    border: 'neon-border-secondary',
-                    glow: 'shadow-[0_0_10px_rgba(6,182,212,0.3)]',
-                    dot: 'bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]'
+                    text: 'text-cyan-400',
+                    bg: 'bg-cyan-400/10',
+                    border: 'border-cyan-400/20',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(34,211,238,0.15)]',
+                    dot: 'bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]',
+                    gradient: 'from-cyan-500/5 to-transparent'
                 };
             default:
                 return {
-                    color: 'text-gray-400',
-                    border: '',
-                    glow: '',
-                    dot: 'bg-gray-500'
+                    text: 'text-purple-400',
+                    bg: 'bg-purple-400/10',
+                    border: 'border-purple-400/20',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(168,85,247,0.15)]',
+                    dot: 'bg-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.5)]',
+                    gradient: 'from-purple-500/5 to-transparent'
                 };
         }
     };
 
-    const styles = getTypeStyles(territory.block_type);
+    const styles = getTypeStyles(territory.blockType);
 
     return (
         <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            whileHover={{ x: 8, scale: 1.02 }}
-            className={`glass-card-hover rounded-xl p-4 transition-all flex items-center justify-between group ${styles.border} ${styles.glow}`}
+            whileHover={{ scale: 1.01 }}
+            className={`
+                relative overflow-hidden rounded-2xl p-4 transition-all duration-300
+                border bg-black/40 backdrop-blur-xl group
+                ${styles.border} ${styles.glow}
+            `}
         >
-            <div className="flex items-center gap-4">
-                <div className={`w-3 h-3 rounded-full ${styles.dot} animate-pulse-glow`} />
-                <div>
-                    <span className="text-white font-mono font-bold text-sm block">
-                        <span className={styles.color}>({territory.x_coordinate}, {territory.y_coordinate})</span>
-                    </span>
-                    <span className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">
-                        {territory.block_type}
-                    </span>
-                </div>
-            </div>
+            {/* Background Gradient */}
+            <div className={`absolute inset-0 bg-gradient-to-r ${styles.gradient} opacity-50`} />
 
-            <div className="text-right">
-                <div className="text-accent font-mono font-bold text-sm flex items-center gap-1">
-                    <Zap size={12} className="text-accent" />
-                    {territory.total_revenue_earned?.toFixed(3) || 0}
+            <div className="relative flex items-center justify-between z-10">
+                <div className="flex items-center gap-4">
+                    {/* Icon / Dot area */}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${styles.border} ${styles.bg}`}>
+                        <div className={`w-2.5 h-2.5 rounded-full ${styles.dot} animate-pulse-glow`} />
+                    </div>
+
+                    {/* Info */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="text-white font-mono font-black text-sm tracking-tight">
+                                <span className="opacity-40">POS</span>
+                                <span className={styles.text}> [{territory.x}, {territory.y}]</span>
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] text-gray-400 uppercase tracking-widest font-black">
+                                {territory.blockType}
+                            </span>
+                            <div className="w-1 h-1 rounded-full bg-white/20" />
+                            <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                                Lvl {territory.level}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div className="text-gray-600 text-[10px] uppercase tracking-wider">SOL</div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2">
+                    {territory.isListed ? (
+                        <span className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-emerald-500/20 flex items-center gap-1.5">
+                            <Tag size={10} />
+                            Listed
+                        </span>
+                    ) : (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onList(territory);
+                            }}
+                            className="px-4 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-emerald-500/20 transition-all flex items-center gap-1.5"
+                        >
+                            <Tag size={10} />
+                            List for Sale
+                        </button>
+                    )}
+
+                    <div className="flex items-center gap-1.5 ml-2">
+                        <MapPin size={10} className={styles.text} />
+                        <span className="text-[10px] font-mono font-bold text-gray-500">
+                            #{territory.id}
+                        </span>
+                    </div>
+                </div>
             </div>
         </motion.div>
     );
@@ -104,6 +161,42 @@ export default function PlayerDashboard() {
     const { publicKey } = useWallet();
     const { player, loading } = usePlayerStore();
     const { territories, empires, isLoading } = usePlayerTerritories(publicKey?.toString());
+    const { mintTerritory, isMinting } = useMintTerritory();
+    const { allUserLands } = useGameProgram();
+    const { cancelList, listings } = useMarketplace();
+
+    const [listModal, setListModal] = useState<{
+        isOpen: boolean;
+        landPubkey: PublicKey | null;
+        landId: string;
+        coordinates: { x: string; y: string };
+        currentPrice?: number;
+        isEditing: boolean;
+    }>({
+        isOpen: false,
+        landPubkey: null,
+        landId: '',
+        coordinates: { x: '', y: '' },
+        isEditing: false
+    });
+
+    const handleListRequest = (territory: any) => {
+        const activeListing = listings.find(l => l.territory_id === territory.id);
+
+        setListModal({
+            isOpen: true,
+            landPubkey: territory._rawPublicKey,
+            landId: territory.id,
+            coordinates: { x: territory.x, y: territory.y },
+            currentPrice: activeListing?.price,
+            isEditing: !!territory.isListed
+        });
+    };
+
+    const handleCancelListing = async (territory: any) => {
+        if (!territory._rawPublicKey) return;
+        await cancelList(territory._rawPublicKey);
+    };
 
     if (!publicKey) {
         return (
@@ -180,19 +273,73 @@ export default function PlayerDashboard() {
 
 
 
-            {/* Empire Map */}
+            {/* Mint Banner */}
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="glass-card rounded-3xl p-6 border-2 neon-border-primary shadow-neon"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="glass-card rounded-3xl p-6 border-2 neon-border-secondary shadow-[0_0_30px_rgba(6,182,212,0.15)] relative overflow-hidden group"
             >
-                <h3 className="text-sm font-black text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <MapPin size={18} className="text-primary" />
-                    <span className="text-gradient-primary">Map Visualization</span>
-                </h3>
-                <EmpireMap territories={territories || []} empires={empires || []} />
+                {/* Background effects */}
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/5 to-transparent opacity-50"></div>
+                <div className="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500/20 blur-[50px] rounded-full group-hover:bg-cyan-400/30 transition-colors duration-500"></div>
+
+                <div className="relative z-10 flex flex-col items-center text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                        <Sparkles size={32} className="text-white" />
+                    </div>
+
+                    <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-2">
+                        Expand Your Empire
+                    </h3>
+
+                    <p className="text-xs md:text-sm text-gray-400 max-w-[280px] mx-auto mb-6">
+                        Claim unexplored coordinates on the grid. Build your territory and climb the leaderboards.
+                    </p>
+
+                    <div className="flex gap-4 mb-6">
+                        <div className="bg-black/40 border border-white/10 rounded-xl px-4 py-2">
+                            <span className="text-[10px] text-gray-500 uppercase tracking-wider block mb-1 font-bold">Cost</span>
+                            <span className="text-sm font-mono font-bold text-cyan-400">0.01 SOL</span>
+                        </div>
+                        <div className="bg-black/40 border border-white/10 rounded-xl px-4 py-2">
+                            <span className="text-[10px] text-gray-500 uppercase tracking-wider block mb-1 font-bold">Network</span>
+                            <span className="text-sm font-mono font-bold text-purple-400">Devnet</span>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => mintTerritory()}
+                        disabled={isMinting}
+                        className={`
+                            relative w-full py-4 rounded-xl font-black tracking-widest uppercase transition-all duration-300 overflow-hidden
+                            ${isMinting
+                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed border-2 border-gray-700'
+                                : 'bg-transparent text-white border-2 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] hover:bg-cyan-500/10'}
+                        `}
+                    >
+                        {/* Button Glow inside */}
+                        {!isMinting && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/0 via-cyan-400/10 to-transparent group-hover:translate-x-full transition-transform duration-1000 -translate-x-full"></div>
+                        )}
+
+                        <div className="relative z-10 flex items-center justify-center gap-2">
+                            {isMinting ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-gray-500 border-t-white rounded-full animate-spin" />
+                                    <span>Forging Deed...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <MapPin size={18} className="text-cyan-400" />
+                                    <span>Mint Territory</span>
+                                </>
+                            )}
+                        </div>
+                    </button>
+                </div>
             </motion.div>
+
 
             {/* Territory List */}
             <div className="space-y-4">
@@ -201,18 +348,52 @@ export default function PlayerDashboard() {
                     <span className="text-gradient-accent">Holdings</span>
                 </h3>
 
-                {territories && territories.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2">
-                        {territories.map((territory, idx) => (
-                            <motion.div
-                                key={territory.territory_id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.05 }}
-                            >
-                                <TerritoryCard territory={territory} />
-                            </motion.div>
-                        ))}
+                {allUserLands.data && allUserLands.data.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        {allUserLands.data.map((territoryWrapper, idx) => {
+                            const land = territoryWrapper.account;
+                            let blockTypeStr = 'standard';
+                            const x = land.x;
+                            const y = land.y;
+
+                            // Apply coordinate-based classification
+                            if ((x === 0 && y === 0) || (x === 49 && y === 0) || (x === 0 && y === 49) || (x === 49 && y === 49)) blockTypeStr = 'corner';
+                            else if (x === 0 || y === 0 || x === 49 || y === 49) blockTypeStr = 'border';
+                            else if (Math.abs(x - 25) <= 2 && Math.abs(y - 25) <= 2) blockTypeStr = 'capital';
+
+                            // Only use on-chain type if coordinate classification falls through to 'standard'
+                            if (blockTypeStr === 'standard' && land.territoryType) {
+                                if (land.territoryType.capital) blockTypeStr = 'capital';
+                                else if (land.territoryType.corner) blockTypeStr = 'corner';
+                                else if (land.territoryType.border) blockTypeStr = 'border';
+                            }
+
+                            const mappedTerritory = {
+                                id: land.id.toString(),
+                                isListed: land.isListed,
+                                level: land.level,
+                                blockType: blockTypeStr,
+                                x: land.x.toString(),
+                                y: land.y.toString(),
+                                hp: land.hp.toString(),
+                                _rawPublicKey: territoryWrapper.publicKey
+                            };
+
+                            return (
+                                <motion.div
+                                    key={mappedTerritory.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                >
+                                    <TerritoryCard
+                                        territory={mappedTerritory}
+                                        onList={handleListRequest}
+                                        onCancel={handleCancelListing}
+                                    />
+                                </motion.div>
+                            );
+                        })}
                     </div>
                 ) : (
                     <motion.div
@@ -222,12 +403,28 @@ export default function PlayerDashboard() {
                     >
                         <MapPin size={48} className="mx-auto mb-4 text-gray-600" />
                         <p className="text-gray-400 text-sm mb-3 font-semibold">No territories owned</p>
-                        <button className="text-primary text-xs font-bold hover:underline transition-all hover:scale-105">
-                            Start Minting on Grid →
+                        <button
+                            onClick={() => (document.querySelector('button[aria-label="Mint Territory"]') as HTMLButtonElement)?.click()}
+                            className="text-emerald-400 text-sm font-bold hover:underline"
+                        >
+                            Mint First Territory →
                         </button>
                     </motion.div>
                 )}
             </div>
+
+            {/* List Land Modal */}
+            {listModal.landPubkey && (
+                <ListLandModal
+                    isOpen={listModal.isOpen}
+                    onClose={() => setListModal(prev => ({ ...prev, isOpen: false }))}
+                    landPubkey={listModal.landPubkey}
+                    landId={listModal.landId}
+                    coordinates={listModal.coordinates}
+                    currentPrice={listModal.currentPrice}
+                    isEditing={listModal.isEditing}
+                />
+            )}
         </div>
     );
 }

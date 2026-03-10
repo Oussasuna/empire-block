@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { useMemo, useState } from 'react';
+import { PublicKey } from '@solana/web3.js';
+import { BN } from '@coral-xyz/anchor';
+import { useGameProgram } from '@/components/program/game';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export interface Listing {
     id: string;
@@ -20,6 +23,8 @@ export interface Listing {
         y_coordinate: number;
         block_type: string;
     };
+    landPubkey: PublicKey;
+    date: BN;
 }
 
 export interface MarketStats {
@@ -30,131 +35,149 @@ export interface MarketStats {
 }
 
 export function useMarketplace() {
-    const [listings, setListings] = useState<Listing[]>([]);
-    const [stats, setStats] = useState<MarketStats | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const { publicKey } = useWallet();
+    const {
+        allListings,
+        allLands,
+        buyLand,
+        listLand: listLandMutation,
+        cancelList: cancelListMutation,
+        editList: editListMutation
+    } = useGameProgram();
+
     const [filters, setFilters] = useState({ type: 'all', sort: 'newest' });
 
-    const fetchListings = async () => {
-        setIsLoading(true);
-        try {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
+    const listings = useMemo(() => {
+        if (!allListings.data || !allLands.data) return [];
 
-            const mockListings: Listing[] = [
-                {
-                    id: '1',
-                    territory_id: 't-101',
-                    x: 18,
-                    y: 23,
-                    block_type: 'standard',
-                    revenue_multiplier: 1.0,
-                    price: 2.5,
-                    seller_wallet: '9oNB...ZVi9',
-                    listed_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-                    status: 'active',
-                    territory: { x_coordinate: 18, y_coordinate: 23, block_type: 'standard' }
-                },
-                {
-                    id: '2',
-                    territory_id: 't-105',
-                    x: 25,
-                    y: 30,
-                    block_type: 'border',
-                    revenue_multiplier: 1.2,
-                    price: 1.8,
-                    seller_wallet: 'AGch...Xy7z',
-                    listed_at: new Date(Date.now() - 3600000 * 5).toISOString(),
-                    status: 'active',
-                    territory: { x_coordinate: 25, y_coordinate: 30, block_type: 'border' }
-                },
-                {
-                    id: '3',
-                    territory_id: 't-202',
-                    x: 12,
-                    y: 45,
-                    block_type: 'capital',
-                    revenue_multiplier: 2.5,
-                    price: 10.5,
-                    seller_wallet: '7xKL...p9Qr',
-                    listed_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-                    status: 'active',
-                    territory: { x_coordinate: 12, y_coordinate: 45, block_type: 'capital' }
-                },
-                {
-                    id: '4',
-                    territory_id: 't-303',
-                    x: 42,
-                    y: 15,
-                    block_type: 'standard',
-                    revenue_multiplier: 1.0,
-                    price: 0.8,
-                    seller_wallet: '3mJK...y2wX',
-                    listed_at: new Date(Date.now() - 3600000 * 1).toISOString(),
-                    status: 'active',
-                    territory: { x_coordinate: 42, y_coordinate: 15, block_type: 'standard' }
-                },
-                {
-                    id: '5',
-                    territory_id: 't-404',
-                    x: 8,
-                    y: 8,
-                    block_type: 'corner',
-                    revenue_multiplier: 3.0,
-                    price: 15.0,
-                    seller_wallet: 'Bv8H...n4pL',
-                    listed_at: new Date(Date.now() - 60000).toISOString(),
-                    status: 'active',
-                    territory: { x_coordinate: 8, y_coordinate: 8, block_type: 'corner' }
-                },
-                {
-                    id: '6',
-                    territory_id: 't-505',
-                    x: 55,
-                    y: 12,
-                    block_type: 'border',
-                    revenue_multiplier: 1.5,
-                    price: 3.2,
-                    seller_wallet: 'Dk4J...m7kP',
-                    listed_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-                    status: 'active',
-                    territory: { x_coordinate: 55, y_coordinate: 12, block_type: 'border' }
-                }
-            ];
+        return allListings.data.filter(w => w.account.isActive).map(listingWrapper => {
+            const list = listingWrapper.account;
+            // Find corresponding land to get coordinates and type by numeric ID
+            const landWrapper = allLands.data?.find(l => l.account.id.toString() === list.landId.toString());
+            const land = landWrapper?.account;
 
-            const mockStats: MarketStats = {
-                volume24h: 750.4,
-                totalTrades: 1420,
-                avgPrice: 1.2,
-                activeListings: 245
+            let type: Listing['block_type'] = 'standard';
+            const x = land?.x || 0;
+            const y = land?.y || 0;
+
+            if ((x === 0 && y === 0) || (x === 49 && y === 0) || (x === 0 && y === 49) || (x === 49 && y === 49)) type = 'corner';
+            else if (x === 0 || y === 0 || x === 49 || y === 49) type = 'border';
+            else if (Math.abs(x - 25) <= 2 && Math.abs(y - 25) <= 2) type = 'capital';
+
+            return {
+                id: listingWrapper.publicKey.toBase58(),
+                territory_id: list.landId.toString(),
+                x,
+                y,
+                block_type: type,
+                revenue_multiplier: 1.0,
+                price: list.price.toNumber() / 1e9, // lamports to SOL
+                seller_wallet: list.seller.toBase58(),
+                listed_at: list.timestamp ? new Date(list.timestamp.toNumber()).toISOString() : new Date().toISOString(), // On-chain usually doesn't store this unless added
+                status: 'active' as const,
+                territory: { x_coordinate: x, y_coordinate: y, block_type: type },
+                landPubkey: landWrapper?.publicKey || PublicKey.default,
+                date: list.timestamp || new BN(0)
             };
+        }).filter(l => {
+            if (filters.type === 'all') return true;
+            return l.block_type === filters.type;
+        }).sort((a, b) => {
+            if (filters.sort === 'price-low') return a.price - b.price;
+            if (filters.sort === 'price-high') return b.price - a.price;
+            return 0; // default newest (id based or similar)
+        });
+    }, [allListings.data, allLands.data, filters]);
 
-            setListings(mockListings);
-            setStats(mockStats);
+    const stats: MarketStats = useMemo(() => {
+        const activeCount = listings.length;
+        const totalVolume = listings.reduce((acc, curr) => acc + curr.price, 0);
+        return {
+            volume24h: totalVolume, // Mocking volume for now
+            totalTrades: 124, // Mock
+            avgPrice: activeCount > 0 ? totalVolume / activeCount : 0,
+            activeListings: activeCount
+        };
+    }, [listings]);
+
+    // ── Activity feed: inactive (purchased) listing PDAs ───────────────────────
+    const activity = useMemo(() => {
+        if (!allListings.data || !allLands.data) return [];
+        return allListings.data
+            .filter(w => !w.account.isActive)
+            .map(w => {
+                const list = w.account;
+                const landWrapper = allLands.data?.find(l => l.account.id.toString() === list.landId.toString());
+                const land = landWrapper?.account;
+                const x = land?.x || 0;
+                const y = land?.y || 0;
+                let blockType = 'standard';
+                if ((x === 0 && y === 0) || (x === 49 && y === 0) || (x === 0 && y === 49) || (x === 49 && y === 49)) blockType = 'corner';
+                else if (x === 0 || y === 0 || x === 49 || y === 49) blockType = 'border';
+                else if (Math.abs(x - 25) <= 2 && Math.abs(y - 25) <= 2) blockType = 'capital';
+                return {
+                    id: w.publicKey.toBase58(),
+                    landId: list.landId.toString(),
+                    seller: list.seller.toBase58(),
+                    buyer: list.buyer.toBase58(),
+                    price: list.price.toNumber() / 1e9,
+                    timestamp: list.timestamp ? list.timestamp.toNumber() * 1000 : 0,
+                    x,
+                    y,
+                    blockType,
+                };
+            })
+            .sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp);
+    }, [allListings.data, allLands.data]);
+
+    const buyTerritory = async (listing: Listing) => {
+        try {
+            const sellerPublicKey = new PublicKey(listing.seller_wallet);
+            const listingPublicKey = new PublicKey(listing.id);
+            await buyLand.mutateAsync({ land: listing.landPubkey, seller: sellerPublicKey, listing: listingPublicKey });
+            return true;
         } catch (error) {
-            console.error('Failed to fetch marketplace data:', error);
-            toast.error('Failed to load marketplace data');
-        } finally {
-            setIsLoading(false);
+            console.error('Buy territory failed:', error);
+            return false;
         }
     };
 
-    // Mock data for initial implementation
-    useEffect(() => {
-        fetchListings();
-    }, []);
-
-    const buyTerritory = async (listingId: string) => {
-        const toastId = toast.loading('Processing purchase...');
+    const listLand = async (land: PublicKey, price: number) => {
         try {
-            // Simulate transaction
-            await new Promise(resolve => setTimeout(resolve, 3000));
-
-            setListings(prev => prev.filter(l => l.id !== listingId));
-            toast.success('Purchase successful! Territory added to your empire.', { id: toastId });
+            const lamports = new BN(price * 1e9);
+            await listLandMutation.mutateAsync({ land, price: lamports });
             return true;
         } catch (error) {
-            toast.error('Transaction failed. Please try again.', { id: toastId });
+            console.error('List land failed:', error);
+            return false;
+        }
+    };
+
+    const cancelList = async (land: PublicKey) => {
+        try {
+            console.log(land.toBase58())
+            console.log(listings)
+            const listing = listings.find(l => l.landPubkey.toBase58() === land.toBase58());
+            if (!listing) throw new Error("Listing not found");
+            const listingPublicKey = new PublicKey(listing.id);
+            await cancelListMutation.mutateAsync({ land, listing: listingPublicKey });
+            return true;
+        } catch (error) {
+            console.error('Cancel listing failed:', error);
+            return false;
+        }
+    };
+
+    const editList = async (land: PublicKey, newPrice: number) => {
+        try {
+            const lamports = new BN(newPrice * 1e9);
+            const listing = listings.find(l => l.landPubkey.toBase58() === land.toBase58());
+            if (!listing) throw new Error("Listing not found");
+            const listingPublicKey = new PublicKey(listing.id);
+            await editListMutation.mutateAsync({ land, newPrice: lamports, listing: listingPublicKey });
+            return true;
+        } catch (error) {
+            console.error('Edit listing failed:', error);
             return false;
         }
     };
@@ -162,10 +185,19 @@ export function useMarketplace() {
     return {
         listings,
         stats,
-        isLoading,
+        activity,
+        isLoading: allListings.isLoading || allLands.isLoading,
+        isActivityLoading: allListings.isLoading || allLands.isLoading,
         filters,
         setFilters,
-        fetchListings,
-        buyTerritory
+        fetchListings: () => {
+            allListings.refetch();
+            allLands.refetch();
+        },
+        buyTerritory,
+        listLand,
+        cancelList,
+        editList
     };
 }
+

@@ -53,9 +53,9 @@ export const LandingNavbar = ({ onOpenMarketplace }: { onOpenMarketplace?: () =>
                     <div className="hidden sm:block wallet-adapter-dropdown">
                         <WalletMultiButton className="!bg-gradient-to-r !from-primary !to-[#6D28D9] hover:!shadow-[0_0_20px_rgba(124,58,237,0.4)] !transition-all !rounded-full !h-10 md:!h-11 !px-6 md:!px-8 !text-xs md:!text-sm !font-bold !border-none !text-white" />
                     </div>
-                    
+
                     {/* Mobile Menu Toggle */}
-                    <button 
+                    <button
                         onClick={toggleMenu}
                         className="lg:hidden p-2 text-white hover:text-primary transition-colors"
                         aria-label="Toggle menu"

@@ -5,6 +5,7 @@ import { ShoppingCart, X, Filter, Search, MapPin, Loader2, Coins } from 'lucide-
 import { useMarketplace, Listing } from '@/hooks/useMarketplace';
 import { useEffect, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey } from '@solana/web3.js';
 
 interface MarketplacePanelProps {
     isOpen: boolean;
@@ -25,7 +26,7 @@ export default function MarketplacePanel({ isOpen, onClose }: MarketplacePanelPr
     const handleBuy = async (listing: Listing) => {
         if (!publicKey) return;
         setBuyingId(listing.id);
-        const success = await buyTerritory(listing.id);
+        const success = await buyTerritory(listing);
         if (success) {
             setBuyingId(null);
         } else {

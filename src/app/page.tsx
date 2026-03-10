@@ -2,7 +2,7 @@
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { LayoutGrid, User } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
@@ -16,7 +16,7 @@ import { HowItWorks } from '@/components/Landing/HowItWorks';
 import { CTABanner, LandingFooter } from '@/components/Landing/CTABanner';
 
 // Game Components
-import { useGrid } from '@/hooks/useGrid';
+import { useGameProgram } from '@/components/program/game';
 import Grid2D from '@/components/Grid/Grid2D';
 import PlayerDashboard from '@/components/Dashboard/PlayerDashboard';
 import TerritoryModal from '@/components/Territory/TerritoryModal';
@@ -25,7 +25,66 @@ export default function Home() {
     const { connected, publicKey } = useWallet();
     const [activeTab, setActiveTab] = useState<'grid' | 'dashboard'>('grid');
     const [selectedCell, setSelectedCell] = useState<{ x: number, y: number } | null>(null);
-    const { territories, isLoading } = useGrid();
+    const { allLands } = useGameProgram();
+
+    // Create the base 50x50 grid and overlay on-chain data
+    const territories = useMemo(() => {
+        const grid: any[] = [];
+
+        // Map on-chain lands by coordinate for easy lookup
+        const onChainMap = new Map();
+        if (allLands.data) {
+            allLands.data.forEach(wrapper => {
+                const land = wrapper.account;
+                onChainMap.set(`${land.x},${land.y}`, land);
+            });
+        }
+
+        for (let x = 0; x < 50; x++) {
+            for (let y = 0; y < 50; y++) {
+                const onChainLand = onChainMap.get(`${x},${y}`);
+
+                let type = 'standard';
+                if ((x === 0 && y === 0) || (x === 49 && y === 0) || (x === 0 && y === 49) || (x === 49 && y === 49)) type = 'corner';
+                else if (x === 0 || y === 0 || x === 49 || y === 49) type = 'border';
+                else if (Math.abs(x - 25) <= 2 && Math.abs(y - 25) <= 2) type = 'capital';
+
+                if (onChainLand) {
+                    // Only use on-chain type if coordinate classification falls through to 'standard'
+                    if (type === 'standard' && onChainLand.territoryType) {
+                        if (onChainLand.territoryType.capital) type = 'capital';
+                        else if (onChainLand.territoryType.corner) type = 'corner';
+                        else if (onChainLand.territoryType.border) type = 'border';
+                    }
+
+                    grid.push({
+                        territory_id: onChainLand.id.toString(),
+                        x_coordinate: onChainLand.x,
+                        y_coordinate: onChainLand.y,
+                        owner_wallet: onChainLand.owner.toString(),
+                        block_type: type,
+                        is_frozen: onChainLand.frozenUntil && typeof onChainLand.frozenUntil.toNumber === 'function' ? onChainLand.frozenUntil.toNumber() > Date.now() / 1000 : false,
+                        total_revenue_earned: 0,
+                        level: onChainLand.level,
+                        visual_config: { color_r: 100, color_g: 100, color_b: 100, pattern: 0, logo_index: 0 },
+                        revenue_multiplier: 1.0
+                    });
+                } else {
+                    grid.push({
+                        x_coordinate: x,
+                        y_coordinate: y,
+                        owner_wallet: null,
+                        block_type: type,
+                        visual_config: { color_r: 100, color_g: 100, color_b: 100, pattern: 0, logo_index: 0 },
+                        revenue_multiplier: 1.0
+                    });
+                }
+            }
+        }
+        return grid;
+    }, [allLands.data]);
+
+    const isLoading = allLands.isLoading;
 
     // If NOT connected, show the stylish AAA landing page
     if (!connected) {
@@ -44,7 +103,7 @@ export default function Home() {
 
     // If connected, show the interactive Game UI
     const handleCellClick = (x: number, y: number) => {
-        setSelectedCell({ x, y });
+        // setSelectedCell({ x, y });
     };
 
     const handleCloseModal = () => {
