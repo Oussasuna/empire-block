@@ -311,6 +311,7 @@ export function useGameProgram() {
             transactionToast(ToastStats.Success)
             allLands.refetch()
             allListings.refetch()
+            allUserLands.refetch()
         },
         onError: () => {
             transactionToast(ToastStats.Delete)
@@ -345,6 +346,7 @@ export function useGameProgram() {
             transactionToast(ToastStats.Success)
             allLands.refetch()
             allListings.refetch()
+            allUserLands.refetch()
         },
         onError: () => {
             transactionToast(ToastStats.Delete)
@@ -377,6 +379,7 @@ export function useGameProgram() {
             transactionToast(ToastStats.Delete)
             transactionToast(ToastStats.Success)
             allListings.refetch()
+            allUserLands.refetch()
         },
         onError: () => {
             transactionToast(ToastStats.Delete)
