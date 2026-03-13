@@ -5,6 +5,7 @@ import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
 import { useGameProgram } from '@/components/program/game';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useMappedCoordinates } from '@/hooks/useMappedCoordinates';
 
 export interface Listing {
     id: string;
@@ -44,6 +45,7 @@ export function useMarketplace() {
         cancelList: cancelListMutation,
         editList: editListMutation
     } = useGameProgram();
+    const { mappedCoords } = useMappedCoordinates();
 
     const [filters, setFilters] = useState({ type: 'all', sort: 'newest' });
 
@@ -56,13 +58,15 @@ export function useMarketplace() {
             const landWrapper = allLands.data?.find(l => l.account.id.toString() === list.landId.toString());
             const land = landWrapper?.account;
 
-            let type: Listing['block_type'] = 'standard';
-            const x = land?.x || 0;
-            const y = land?.y || 0;
+            const landStrId = land ? land.id.toString() : list.landId.toString();
+            const coord = mappedCoords.get(landStrId);
+            const x = coord?.x ?? 0;
+            const y = coord?.y ?? 0;
 
-            if ((x === 0 && y === 0) || (x === 49 && y === 0) || (x === 0 && y === 49) || (x === 49 && y === 49)) type = 'corner';
-            else if (x === 0 || y === 0 || x === 49 || y === 49) type = 'border';
-            else if (Math.abs(x - 25) <= 2 && Math.abs(y - 25) <= 2) type = 'capital';
+            let type: Listing['block_type'] = 'standard';
+            if (land?.territoryType?.capital) type = 'capital';
+            else if (land?.territoryType?.corner) type = 'corner';
+            else if (land?.territoryType?.border) type = 'border';
 
             return {
                 id: listingWrapper.publicKey.toBase58(),
@@ -109,12 +113,17 @@ export function useMarketplace() {
                 const list = w.account;
                 const landWrapper = allLands.data?.find(l => l.account.id.toString() === list.landId.toString());
                 const land = landWrapper?.account;
-                const x = land?.x || 0;
-                const y = land?.y || 0;
+                
+                const landStrId = land ? land.id.toString() : list.landId.toString();
+                const coord = mappedCoords.get(landStrId);
+                const x = coord?.x ?? 0;
+                const y = coord?.y ?? 0;
+
                 let blockType = 'standard';
-                if ((x === 0 && y === 0) || (x === 49 && y === 0) || (x === 0 && y === 49) || (x === 49 && y === 49)) blockType = 'corner';
-                else if (x === 0 || y === 0 || x === 49 || y === 49) blockType = 'border';
-                else if (Math.abs(x - 25) <= 2 && Math.abs(y - 25) <= 2) blockType = 'capital';
+                if (land?.territoryType?.capital) blockType = 'capital';
+                else if (land?.territoryType?.corner) blockType = 'corner';
+                else if (land?.territoryType?.border) blockType = 'border';
+
                 return {
                     id: w.publicKey.toBase58(),
                     landId: list.landId.toString(),

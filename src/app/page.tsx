@@ -1,6 +1,7 @@
 'use client';
 
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useMappedCoordinates } from '@/hooks/useMappedCoordinates';
 import dynamic from 'next/dynamic';
 import { useState, useMemo } from 'react';
 import { LayoutGrid, User } from 'lucide-react';
@@ -26,6 +27,7 @@ export default function Home() {
     const [activeTab, setActiveTab] = useState<'grid' | 'dashboard'>('grid');
     const [selectedCell, setSelectedCell] = useState<{ x: number, y: number } | null>(null);
     const { allLands } = useGameProgram();
+    const { mappedCoords, isLoading: isMapLoading } = useMappedCoordinates();
 
     // Create the base 50x50 grid and overlay on-chain data
     const territories = useMemo(() => {
@@ -36,7 +38,11 @@ export default function Home() {
         if (allLands.data) {
             allLands.data.forEach(wrapper => {
                 const land = wrapper.account;
-                onChainMap.set(`${land.x},${land.y}`, land);
+                const landStrId = land.id.toString();
+                const coord = mappedCoords.get(landStrId);
+                const x = coord?.x ?? 0;
+                const y = coord?.y ?? 0;
+                onChainMap.set(`${x},${y}`, land);
             });
         }
 
@@ -50,17 +56,15 @@ export default function Home() {
                 else if (Math.abs(x - 25) <= 2 && Math.abs(y - 25) <= 2) type = 'capital';
 
                 if (onChainLand) {
-                    // Only use on-chain type if coordinate classification falls through to 'standard'
-                    if (type === 'standard' && onChainLand.territoryType) {
-                        if (onChainLand.territoryType.capital) type = 'capital';
-                        else if (onChainLand.territoryType.corner) type = 'corner';
-                        else if (onChainLand.territoryType.border) type = 'border';
-                    }
+                    // 1. On-chain territoryType is the authoritative rarity (assigned randomly at mint)
+                    if (onChainLand.territoryType?.capital) type = 'capital';
+                    else if (onChainLand.territoryType?.corner) type = 'corner';
+                    else if (onChainLand.territoryType?.border) type = 'border';
 
                     grid.push({
                         territory_id: onChainLand.id.toString(),
-                        x_coordinate: onChainLand.x,
-                        y_coordinate: onChainLand.y,
+                        x_coordinate: x,
+                        y_coordinate: y,
                         owner_wallet: onChainLand.owner.toString(),
                         block_type: type,
                         is_frozen: onChainLand.frozenUntil && typeof onChainLand.frozenUntil.toNumber === 'function' ? onChainLand.frozenUntil.toNumber() > Date.now() / 1000 : false,
@@ -82,9 +86,9 @@ export default function Home() {
             }
         }
         return grid;
-    }, [allLands.data]);
+    }, [allLands.data, mappedCoords]);
 
-    const isLoading = allLands.isLoading;
+    const isLoading = allLands.isLoading || isMapLoading;
 
     // If NOT connected, show the stylish AAA landing page
     if (!connected) {

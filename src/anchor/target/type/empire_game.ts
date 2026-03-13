@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/empire_game.json`.
  */
 export type EmpireGame = {
-  "address": "2qhP9sL3Mk2kvnqVHzthEkZUrtAJyqzfE4vdcWgiaBxi",
+  "address": "6P9oYuKMkw1z8goQkHqLhTuZy9aDEAnauG37ywNkpzjx",
   "metadata": {
     "name": "empireGame",
     "version": "0.1.0",
@@ -67,25 +67,7 @@ export type EmpireGame = {
           "docs": [
             "Attacker's User profile — updated with win/loss result."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "battle_challenge.attacker",
-                "account": "battleChallenge"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "attackerLand",
@@ -198,27 +180,7 @@ export type EmpireGame = {
         },
         {
           "name": "listing",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  108,
-                  105,
-                  115,
-                  116,
-                  105,
-                  110,
-                  103
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "land"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "systemProgram",
@@ -257,41 +219,7 @@ export type EmpireGame = {
           "docs": [
             "The challenge PDA to cancel."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  97,
-                  116,
-                  116,
-                  108,
-                  101,
-                  95,
-                  99,
-                  104,
-                  97,
-                  108,
-                  108,
-                  101,
-                  110,
-                  103,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "attacker"
-              },
-              {
-                "kind": "account",
-                "path": "battle_challenge.defender_land_id",
-                "account": "battleChallenge"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "systemProgram",
@@ -324,27 +252,7 @@ export type EmpireGame = {
         },
         {
           "name": "listing",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  108,
-                  105,
-                  115,
-                  116,
-                  105,
-                  110,
-                  103
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "land"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "systemProgram",
@@ -376,27 +284,7 @@ export type EmpireGame = {
         },
         {
           "name": "listing",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  108,
-                  105,
-                  115,
-                  116,
-                  105,
-                  110,
-                  103
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "land"
-              }
-            ]
-          }
+          "writable": true
         }
       ],
       "args": [
@@ -711,7 +599,8 @@ export type EmpireGame = {
               },
               {
                 "kind": "account",
-                "path": "land"
+                "path": "land.id",
+                "account": "land"
               }
             ]
           }
@@ -789,9 +678,8 @@ export type EmpireGame = {
                 ]
               },
               {
-                "kind": "account",
-                "path": "game.total_lands",
-                "account": "game"
+                "kind": "arg",
+                "path": "date"
               }
             ]
           }
@@ -825,7 +713,12 @@ export type EmpireGame = {
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "date",
+          "type": "i64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1123,6 +1016,22 @@ export type EmpireGame = {
             "type": "u64"
           },
           {
+            "name": "mintedCorner",
+            "type": "u16"
+          },
+          {
+            "name": "mintedCapital",
+            "type": "u16"
+          },
+          {
+            "name": "mintedBorder",
+            "type": "u16"
+          },
+          {
+            "name": "mintedStandard",
+            "type": "u16"
+          },
+          {
             "name": "bump",
             "type": "u8"
           }
@@ -1161,14 +1070,6 @@ export type EmpireGame = {
           {
             "name": "genesisOwner",
             "type": "pubkey"
-          },
-          {
-            "name": "x",
-            "type": "u8"
-          },
-          {
-            "name": "y",
-            "type": "u8"
           },
           {
             "name": "territoryType",
@@ -1229,7 +1130,8 @@ export type EmpireGame = {
       "name": "territoryType",
       "docs": [
         "Territory type — assigned randomly on mint.",
-        "Determines power bonus and revenue multiplier per GDD."
+        "Hard supply caps (out of 2500 total):",
+        "Corner: 4 | Capital: 25 | Border: 192 | Standard: 2279"
       ],
       "type": {
         "kind": "enum",

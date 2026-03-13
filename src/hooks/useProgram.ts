@@ -29,15 +29,15 @@ export const useProgram = () => {
                 {
                     "name": "mintTerritory",
                     "accounts": [
-                        { "name": "territory", "isMut": true, "isSigner": false },
-                        { "name": "gridState", "isMut": true, "isSigner": false },
-                        { "name": "nftMint", "isMut": true, "isSigner": true },
-                        { "name": "nftTokenAccount", "isMut": true, "isSigner": false },
-                        { "name": "buyer", "isMut": true, "isSigner": true },
-                        { "name": "tokenProgram", "isMut": false, "isSigner": false },
-                        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
-                        { "name": "systemProgram", "isMut": false, "isSigner": false },
-                        { "name": "rent", "isMut": false, "isSigner": false }
+                        { "name": "territory", "writable": true, "signer": false },
+                        { "name": "gridState", "writable": true, "signer": false },
+                        { "name": "nftMint", "writable": true, "signer": true },
+                        { "name": "nftTokenAccount", "writable": true, "signer": false },
+                        { "name": "buyer", "writable": true, "signer": true },
+                        { "name": "tokenProgram", "writable": false, "signer": false },
+                        { "name": "associatedTokenProgram", "writable": false, "signer": false },
+                        { "name": "systemProgram", "writable": false, "signer": false },
+                        { "name": "rent", "writable": false, "signer": false }
                     ],
                     "args": [
                         { "name": "x", "type": "u8" },
@@ -61,9 +61,9 @@ export const useProgram = () => {
                 }
             ],
             metadata: { address: PROGRAM_ID.toString() }
-        };
+        } as unknown as Idl;
 
-        return new Program(idl, PROGRAM_ID, provider);
+        return new Program(idl, provider);
     }, [provider]);
 
     return { program };

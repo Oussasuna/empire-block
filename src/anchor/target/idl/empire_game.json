@@ -1,5 +1,5 @@
 {
-  "address": "2qhP9sL3Mk2kvnqVHzthEkZUrtAJyqzfE4vdcWgiaBxi",
+  "address": "6P9oYuKMkw1z8goQkHqLhTuZy9aDEAnauG37ywNkpzjx",
   "metadata": {
     "name": "empire_game",
     "version": "0.1.0",
@@ -61,25 +61,7 @@
           "docs": [
             "Attacker's User profile — updated with win/loss result."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "battle_challenge.attacker",
-                "account": "BattleChallenge"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "attacker_land",
@@ -192,27 +174,7 @@
         },
         {
           "name": "listing",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  108,
-                  105,
-                  115,
-                  116,
-                  105,
-                  110,
-                  103
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "land"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "system_program",
@@ -251,41 +213,7 @@
           "docs": [
             "The challenge PDA to cancel."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  97,
-                  116,
-                  116,
-                  108,
-                  101,
-                  95,
-                  99,
-                  104,
-                  97,
-                  108,
-                  108,
-                  101,
-                  110,
-                  103,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "attacker"
-              },
-              {
-                "kind": "account",
-                "path": "battle_challenge.defender_land_id",
-                "account": "BattleChallenge"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "system_program",
@@ -318,27 +246,7 @@
         },
         {
           "name": "listing",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  108,
-                  105,
-                  115,
-                  116,
-                  105,
-                  110,
-                  103
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "land"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "system_program",
@@ -370,27 +278,7 @@
         },
         {
           "name": "listing",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  108,
-                  105,
-                  115,
-                  116,
-                  105,
-                  110,
-                  103
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "land"
-              }
-            ]
-          }
+          "writable": true
         }
       ],
       "args": [
@@ -705,7 +593,8 @@
               },
               {
                 "kind": "account",
-                "path": "land"
+                "path": "land.id",
+                "account": "Land"
               }
             ]
           }
@@ -783,9 +672,8 @@
                 ]
               },
               {
-                "kind": "account",
-                "path": "game.total_lands",
-                "account": "Game"
+                "kind": "arg",
+                "path": "date"
               }
             ]
           }
@@ -819,7 +707,12 @@
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "date",
+          "type": "i64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1117,6 +1010,22 @@
             "type": "u64"
           },
           {
+            "name": "minted_corner",
+            "type": "u16"
+          },
+          {
+            "name": "minted_capital",
+            "type": "u16"
+          },
+          {
+            "name": "minted_border",
+            "type": "u16"
+          },
+          {
+            "name": "minted_standard",
+            "type": "u16"
+          },
+          {
             "name": "bump",
             "type": "u8"
           }
@@ -1155,14 +1064,6 @@
           {
             "name": "genesis_owner",
             "type": "pubkey"
-          },
-          {
-            "name": "x",
-            "type": "u8"
-          },
-          {
-            "name": "y",
-            "type": "u8"
           },
           {
             "name": "territory_type",
@@ -1223,7 +1124,8 @@
       "name": "TerritoryType",
       "docs": [
         "Territory type — assigned randomly on mint.",
-        "Determines power bonus and revenue multiplier per GDD."
+        "Hard supply caps (out of 2500 total):",
+        "Corner: 4 | Capital: 25 | Border: 192 | Standard: 2279"
       ],
       "type": {
         "kind": "enum",

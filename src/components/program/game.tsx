@@ -242,20 +242,21 @@ export function useGameProgram() {
     const mintLand = useMutation({
         mutationKey: ['game', 'mintLand', { cluster }],
         mutationFn: async ({ treasury = TREASURY, imageUrl = '' }: { treasury?: PublicKey, imageUrl?: string } = {}) => {
+            const date = new BN(Date.now());
             // Check & auto-init user profile if needed
             // await initialize.mutateAsync({ pricePerLand: 0.01 * LAMPORTS_PER_SOL, battleFee: 0.001 * LAMPORTS_PER_SOL })
             const preIxs = await ensureUserProfileIx(imageUrl)
+            // await initialize.mutateAsync({ pricePerLand: 0.01 * LAMPORTS_PER_SOL, battleFee: 0.0006 * LAMPORTS_PER_SOL })
             // Fetch game state to get next land index
             const [gamePda] = deriveGamePda()
-            const gameState = await program.account.game.fetch(gamePda)
-            const [land] = deriveLandPda(gameState.totalLands)
+            const [land] = deriveLandPda(date)
             const [userProfile] = deriveUserProfilePda(anchorWallet!.publicKey)
             console.log('Minting land...');
             console.log(userProfile)
 
             transactionToast(ToastStats.Loading)
             return program.methods
-                .mintLand()
+                .mintLand(date)
                 .accountsStrict({
                     user: anchorWallet!.publicKey,
                     game: gamePda,

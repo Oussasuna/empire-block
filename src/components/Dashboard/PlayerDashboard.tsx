@@ -12,6 +12,7 @@ import { useMarketplace } from '@/hooks/useMarketplace';
 import ListLandModal from '../Marketplace/ListLandModal';
 import { PublicKey } from '@solana/web3.js';
 import { useState } from 'react';
+import { useMappedCoordinates } from '@/hooks/useMappedCoordinates';
 
 
 function StatCard({ icon, label, value, colorClass, accentClass }: any) {
@@ -164,6 +165,7 @@ export default function PlayerDashboard() {
     const { mintTerritory, isMinting } = useMintTerritory();
     const { allUserLands } = useGameProgram();
     const { cancelList, listings } = useMarketplace();
+    const { mappedCoords, isLoading: isMapLoading } = useMappedCoordinates();
 
     const [listModal, setListModal] = useState<{
         isOpen: boolean;
@@ -352,29 +354,26 @@ export default function PlayerDashboard() {
                     <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                         {allUserLands.data.map((territoryWrapper, idx) => {
                             const land = territoryWrapper.account;
+
+                            // 1. On-chain territoryType is the authoritative rarity (assigned randomly at mint)
                             let blockTypeStr = 'standard';
-                            const x = land.x;
-                            const y = land.y;
+                            if (land.territoryType?.capital) blockTypeStr = 'capital';
+                            else if (land.territoryType?.corner) blockTypeStr = 'corner';
+                            else if (land.territoryType?.border) blockTypeStr = 'border';
 
-                            // Apply coordinate-based classification
-                            if ((x === 0 && y === 0) || (x === 49 && y === 0) || (x === 0 && y === 49) || (x === 49 && y === 49)) blockTypeStr = 'corner';
-                            else if (x === 0 || y === 0 || x === 49 || y === 49) blockTypeStr = 'border';
-                            else if (Math.abs(x - 25) <= 2 && Math.abs(y - 25) <= 2) blockTypeStr = 'capital';
-
-                            // Only use on-chain type if coordinate classification falls through to 'standard'
-                            if (blockTypeStr === 'standard' && land.territoryType) {
-                                if (land.territoryType.capital) blockTypeStr = 'capital';
-                                else if (land.territoryType.corner) blockTypeStr = 'corner';
-                                else if (land.territoryType.border) blockTypeStr = 'border';
-                            }
+                            // 2. Look up coordinates from the mapped coords
+                            const landStrId = land.id.toString();
+                            const coord = mappedCoords.get(landStrId);
+                            const xCoord = coord?.x ?? 0;
+                            const yCoord = coord?.y ?? 0;
 
                             const mappedTerritory = {
-                                id: land.id.toString(),
+                                id: landStrId,
                                 isListed: land.isListed,
                                 level: land.level,
                                 blockType: blockTypeStr,
-                                x: land.x.toString(),
-                                y: land.y.toString(),
+                                x: xCoord.toString(),
+                                y: yCoord.toString(),
                                 hp: land.hp.toString(),
                                 _rawPublicKey: territoryWrapper.publicKey
                             };

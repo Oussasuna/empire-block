@@ -30,7 +30,7 @@ export function getGameProgramId(cluster: Cluster) {
         case "devnet":
         case "testnet":
             // This is the program ID for the Protocol program on devnet and testnet.
-            return new PublicKey("2qhP9sL3Mk2kvnqVHzthEkZUrtAJyqzfE4vdcWgiaBxi");
+            return new PublicKey("6P9oYuKMkw1z8goQkHqLhTuZy9aDEAnauG37ywNkpzjx");
         case "mainnet-beta":
         default:
             return GAME_PROGRAM_ID;

@@ -14,6 +14,7 @@ import { Store, Ghost, LayoutGrid, User, Tag, X, MapPin, Loader2, Activity, Arro
 import { LandingNavbar } from '@/components/Landing/Navbar';
 import { LandingFooter } from '@/components/Landing/CTABanner';
 import { PublicKey } from '@solana/web3.js';
+import { useMappedCoordinates } from '@/hooks/useMappedCoordinates';
 
 type Tab = 'buy' | 'my-lands' | 'activity';
 
@@ -31,6 +32,7 @@ export default function MarketplacePage() {
         cancelList,
     } = useMarketplace();
     const { allUserLands } = useGameProgram();
+    const { mappedCoords } = useMappedCoordinates();
 
     const [activeTab, setActiveTab] = useState<Tab>('buy');
     const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
@@ -76,12 +78,16 @@ export default function MarketplacePage() {
     // Build user land data
     const userLands = (allUserLands.data || []).map(w => {
         const land = w.account;
-        const x = land.x as number;
-        const y = land.y as number;
+        
+        const landStrId = land.id.toString();
+        const coord = mappedCoords.get(landStrId);
+        const x = coord?.x ?? 0;
+        const y = coord?.y ?? 0;
+
         let blockType = 'standard';
-        if ((x === 0 && y === 0) || (x === 49 && y === 0) || (x === 0 && y === 49) || (x === 49 && y === 49)) blockType = 'corner';
-        else if (x === 0 || y === 0 || x === 49 || y === 49) blockType = 'border';
-        else if (Math.abs(x - 25) <= 2 && Math.abs(y - 25) <= 2) blockType = 'capital';
+        if (land.territoryType?.capital) blockType = 'capital';
+        else if (land.territoryType?.corner) blockType = 'corner';
+        else if (land.territoryType?.border) blockType = 'border';
 
         const activeListing = listings.find(l => l.landPubkey.toBase58() === w.publicKey.toBase58());
 
